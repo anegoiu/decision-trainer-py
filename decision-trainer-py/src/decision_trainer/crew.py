@@ -1,10 +1,17 @@
+# Suppress minimal warnings before importing crewai
+from decision_trainer.suppress_warnings import suppress_minimal_warnings
+suppress_minimal_warnings()
+
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
+from crewai_tools import SerperDevTool
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from typing import List
 # If you want to run a snippet of code before or after the crew starts,
 # you can use the @before_kickoff and @after_kickoff decorators
 # https://docs.crewai.com/concepts/crews#example-crew-class-with-decorators
+
+suppress_minimal_warnings()
 
 @CrewBase
 class DecisionTrainer():
@@ -21,17 +28,21 @@ class DecisionTrainer():
     # https://docs.crewai.com/concepts/agents#agent-tools
     @agent
     def researcher(self) -> Agent:
-        return Agent(
+        print("calling the researcher agent")
+        agent = Agent(
             config=self.agents_config['researcher'], # type: ignore[index]
-            verbose=True
+            verbose=True,
+            tools=[SerperDevTool()]
         )
+        print("researcher agent created: ", agent)
+        return agent
 
-    @agent
-    def reporting_analyst(self) -> Agent:
-        return Agent(
-            config=self.agents_config['reporting_analyst'], # type: ignore[index]
-            verbose=True
-        )
+    # @agent
+    # def reporting_analyst(self) -> Agent:
+    #     return Agent(
+    #         config=self.agents_config['reporting_analyst'], # type: ignore[index]
+    #         verbose=True
+    #     )
 
     # To learn more about structured task outputs,
     # task dependencies, and task callbacks, check out the documentation:
@@ -42,12 +53,12 @@ class DecisionTrainer():
             config=self.tasks_config['research_task'], # type: ignore[index]
         )
 
-    @task
-    def reporting_task(self) -> Task:
-        return Task(
-            config=self.tasks_config['reporting_task'], # type: ignore[index]
-            output_file='report.md'
-        )
+    # @task
+    # def reporting_task(self) -> Task:
+    #     return Task(
+    #         config=self.tasks_config['reporting_task'], # type: ignore[index]
+    #         output_file='output/report.md'
+    #     )
 
     @crew
     def crew(self) -> Crew:
@@ -55,6 +66,10 @@ class DecisionTrainer():
         # To learn how to add knowledge sources to your crew, check out the documentation:
         # https://docs.crewai.com/concepts/knowledge#what-is-knowledge
 
+        print("creating crew")
+        print("agents: ", self.agents)
+        print("tasks: ", self.tasks)
+        print("process: ", Process.sequential)
         return Crew(
             agents=self.agents, # Automatically created by the @agent decorator
             tasks=self.tasks, # Automatically created by the @task decorator
@@ -62,3 +77,4 @@ class DecisionTrainer():
             verbose=True,
             # process=Process.hierarchical, # In case you wanna use that instead https://docs.crewai.com/how-to/Hierarchical/
         )
+

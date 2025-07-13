@@ -1,6 +1,20 @@
 
 import os
+import sys
+import warnings
 from dotenv import load_dotenv
+
+# Add src directory to path for imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+
+# Suppress all warnings
+try:
+    from decision_trainer.suppress_warnings import suppress_all_warnings
+except ImportError:
+    # Fallback if module not found
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+    warnings.filterwarnings("ignore", message=".*PydanticDeprecatedSince.*")
+    warnings.filterwarnings("ignore", message=".*deprecated.*")
 
 # Load environment variables from .env file
 load_dotenv()
@@ -11,6 +25,7 @@ os.environ["WEAVE_TRACE_CREWAI"] = "false"
 import weave
 import json
 from openai import OpenAI
+
 
 @weave.op() # 🐝 Decorator to track requests
 def extract_fruit(sentence: str) -> dict:
